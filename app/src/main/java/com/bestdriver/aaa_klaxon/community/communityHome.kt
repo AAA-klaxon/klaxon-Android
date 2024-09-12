@@ -99,17 +99,17 @@ fun CommunityScreen(
         LazyColumn(
             modifier = Modifier
                 .padding(16.dp)
-                .padding(top = 40.dp)
+                .padding(top = 50.dp)
         ) {
             item {
                 Text(
                     text = "커뮤니티",
-                    fontSize = 32.sp,
+                    fontSize = 30.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentWidth(Alignment.CenterHorizontally)
-                        .padding(top = 20.dp, bottom = 50.dp)
+                        .padding( bottom = 40.dp)
                 )
             }
 

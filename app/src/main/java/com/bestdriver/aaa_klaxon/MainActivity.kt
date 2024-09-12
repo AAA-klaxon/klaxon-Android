@@ -277,7 +277,7 @@ fun AppNavGraph(
         }
 
         composable("reportHistory") {
-            ReportHistoryScreen(onBackPressed = { navController.popBackStack() })
+            ReportHistoryScreen(navController = navController)
         }
     }
 }

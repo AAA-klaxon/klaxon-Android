@@ -48,6 +48,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -92,17 +94,26 @@ fun CommunityFeedScreen(
     // 댓글 리스트를 가져옵니다.
     val postComments = comments[postId] ?: emptyList()
 
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
     // UI를 구성합니다.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .padding(top = 10.dp)
+            .clickable {
+                // 빈 배경 클릭 시 키보드 숨기기
+                focusManager.clearFocus()
+                keyboardController?.hide()
+            }
     ) {
         Icon(
             imageVector = Icons.Default.ArrowBack,
             contentDescription = "Back",
             modifier = Modifier
-                .size(40.dp)
+                .size(30.dp)
                 .clickable { navController.navigateUp() },
             tint = Color.Black
         )
@@ -124,8 +135,6 @@ fun CommunityFeedScreen(
         } else {
             Text("Post details not available")
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(
             modifier = Modifier
@@ -164,7 +173,7 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp)
+            .padding(top = 10.dp)
     ) {
         CircleCanvas(
             modifier = Modifier
@@ -203,6 +212,7 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
             }
         }
     }
+
     Spacer(modifier = Modifier.height(10.dp))
     Row(
         modifier = Modifier
@@ -212,7 +222,7 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
     ) {
         Text(
             text = post.title,
-            fontSize = 28.sp,
+            fontSize = 23.sp,
             fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
             color = Color.Black
         )
@@ -254,7 +264,7 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
 
         Text(
             text = likeCount.value.toString(), // 하트 클릭 횟수를 표시
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             fontFamily = FontFamily(Font(R.font.pretendard_regular)),
             color = Color.Black,
             modifier = Modifier
@@ -272,7 +282,7 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
 
         Text(
             text = post.commentCount.toString(), // 댓글 수를 표시
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             fontFamily = FontFamily(Font(R.font.pretendard_regular)),
             color = Color.Black,
             modifier = Modifier
@@ -290,7 +300,7 @@ fun CommentItem(comment: Comment) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 30.dp)
+            .padding(top = 20.dp)
     ) {
         Row(
             modifier = Modifier
@@ -336,7 +346,7 @@ fun CommentItem(comment: Comment) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 5.dp)
-                    .padding(bottom = 25.dp)
+                    .padding(bottom = 20.dp)
             )
         }
         ThinHorizontalLine()
@@ -407,6 +417,7 @@ fun CommentSection(viewModel: CommunityWriteScreenViewModel, postId: String) {
         }
     }
 }
+
 
 
 

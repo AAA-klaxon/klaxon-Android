@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.bestdriver.aaa_klaxon.R
+import com.bestdriver.aaa_klaxon.data.data_source.CustomTopBar
 import com.bestdriver.aaa_klaxon.ui.theme.AAA_klaxonTheme
 import com.bestdriver.aaa_klaxon.ui.theme.MyPurple
 
@@ -33,107 +34,81 @@ import com.bestdriver.aaa_klaxon.ui.theme.MyPurple
 fun DeleteAccountScreen(navController: NavController, modifier: Modifier = Modifier) {
     var isChecked by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Box(modifier = Modifier
-                        .fillMaxWidth(),
-                    ) {
-                        Text(
-                            "탈퇴하기",
-                            textAlign = TextAlign.Center,
-                            fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
-                            fontSize = 30.sp,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(16.dp)
-                        )
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(top = 40.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start
+    ) {
+        CustomTopBar(
+            title = "탈퇴하기",
+            onBackClick = { navController.navigateUp() }
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth()
+                .padding(top = 16.dp)
+                .padding(bottom = 16.dp),
+            thickness = 1.dp,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "클락션을 탈퇴하면,",
+            fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
+            fontSize = 25.sp,
+            modifier = Modifier.padding(bottom = 18.dp)
+        )
+
+        Text(
+            text = "내 프로필, 주행내역, 게시글, 댓글, 적립캐시\n" +
+                    "그 외 사용자가 설정한 모든 정보가 사라지고 복구가 불가능합니다.",
+            fontSize = 17.sp,
+            fontFamily = FontFamily(Font(R.font.pretendard_regular)),
+            modifier = Modifier.padding(bottom = 18.dp)
+        )
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = isChecked, onCheckedChange = { isChecked = it })
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "안내 사항을 확인하였으며, 이에 동의합니다.",
+                fontFamily = FontFamily(Font(R.font.pretendard_regular)),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(25.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(
+                onClick = {
+                    if (isChecked) {
+                        // TODO: 탈퇴 처리 로직 추가
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        // 뒤로가기 버튼 클릭 시 MyPageScreen으로 이동
-                        navController.navigate("myPage") {
-                            popUpTo("deleteAccount") { inclusive = true } // 현재 화면을 스택에서 제거
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
-        modifier = modifier.padding(top = 40.dp)
-    ) { paddingValues ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
-        ) {
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                thickness = 1.dp,
-                color = Color.Gray
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "클락션을 탈퇴하면,",
-                fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
-                fontSize = 25.sp,
-                modifier = Modifier.padding(bottom = 18.dp)
-            )
-
-            Text(
-                text = "내 프로필, 주행내역, 게시글, 댓글, 적립캐시\n" +
-                        "그 외 사용자가 설정한 모든 정보가 사라지고 복구가 불가능합니다.",
-                fontSize = 17.sp,
-                fontFamily = FontFamily(Font(R.font.pretendard_regular)),
-                modifier = Modifier.padding(bottom = 18.dp)
-            )
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isChecked, onCheckedChange = { isChecked = it })
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "안내 사항을 확인하였으며, 이에 동의합니다.",
-                    fontFamily = FontFamily(Font(R.font.pretendard_regular)),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(25.dp))
-
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                shape = RoundedCornerShape(6.dp), // 모서리 둥글기를 조절
+                enabled = isChecked,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MyPurple
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .height(50.dp)
             ) {
-                Button(
-                    onClick = {
-                        if (isChecked) {
-                            // TODO: 탈퇴 처리 로직 추가
-                        }
-                    },
-                    shape = RoundedCornerShape(6.dp), // 모서리 둥글기를 조절
-                    enabled = isChecked,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MyPurple
-                    ),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .height(50.dp)
-                ) {
-                    Text(
-                        text = "탈퇴하기",
-                        fontSize = 20.sp,
-                        fontFamily = FontFamily(Font(R.font.pretendard_medium)),
-                        color = Color.White
-                    )
-                }
+                Text(
+                    text = "탈퇴하기",
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily(Font(R.font.pretendard_medium)),
+                    color = Color.White
+                )
             }
         }
     }

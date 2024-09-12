@@ -64,7 +64,7 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
                 color = Color.Black,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 40.dp, bottom = 20.dp)
+                    .padding(top = 50.dp, bottom = 20.dp)
             )
         }
 

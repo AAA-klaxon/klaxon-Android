@@ -5,11 +5,14 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.bestdriver.aaa_klaxon.community.Comment
+import com.bestdriver.aaa_klaxon.mypage.ReportHistory
 import com.bestdriver.aaa_klaxon.user.mypage.Notice
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class UserViewModel : ViewModel() {
@@ -144,5 +147,31 @@ class NoticeViewModel : ViewModel() {
             ),
             // 추가 공지사항...
         )
+    }
+}
+
+// ViewModel 클래스
+class ReportHistoryViewModel : ViewModel() {
+    // 예시 신고 내역
+    private val _reportHistories = mutableStateListOf(
+        ReportHistory(
+            date = "2024.07.24",
+            location = "서울특별시 강북구 4.19로",
+            sign = "우회전 표지판"
+        ),
+        ReportHistory(
+            date = "2024.07.14",
+            location = "서울특별시 강북구 수유동 270-63",
+            sign = "진입금지 표지판"
+        )
+    )
+    val reportHistories: List<ReportHistory> get() = _reportHistories
+
+    // 데이터를 업데이트하는 함수 (예: API 호출 등)
+    fun updateReportHistories(newHistories: List<ReportHistory>) {
+        viewModelScope.launch {
+            _reportHistories.clear()
+            _reportHistories.addAll(newHistories)
+        }
     }
 }

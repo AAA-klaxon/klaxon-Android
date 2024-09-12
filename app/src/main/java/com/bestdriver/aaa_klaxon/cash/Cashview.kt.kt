@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.bestdriver.aaa_klaxon.R
+import com.bestdriver.aaa_klaxon.data.data_source.CustomTopBar
+
 @Composable
 fun CashScreen(navController: NavController) {
     Column(
@@ -50,32 +52,10 @@ fun CashScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // 제목 텍스트
-           Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp), // Row의 높이에 맞추기
-               verticalAlignment = Alignment.CenterVertically
-            ) {
-               // 뒤로가기 아이콘
-               Icon(
-                   imageVector = Icons.Default.ArrowBack,
-                   contentDescription = "Back",
-                   modifier = Modifier
-                       .size(40.dp)
-                       .clickable { navController.navigateUp() }, // 뒤로가기 클릭 시 이전 페이지로 이동
-                   tint = Color.Black
-               )
-
-                Text(
-                    text = "적립내역",
-                    fontSize = 32.sp,
-                    fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 90.dp)
-                )
-            }
+            CustomTopBar(
+                title = "적립내역",
+                onBackClick = { navController.navigateUp() }
+            )
         }
         Spacer(modifier = Modifier.height(20.dp))
 

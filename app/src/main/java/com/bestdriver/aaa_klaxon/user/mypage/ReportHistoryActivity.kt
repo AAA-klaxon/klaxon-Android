@@ -11,72 +11,51 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.bestdriver.aaa_klaxon.data.data_source.CustomTopBar
 import com.bestdriver.aaa_klaxon.ui.theme.AAA_klaxonTheme
+import com.bestdriver.aaa_klaxon.viewmodel.ReportHistoryViewModel
 
-class ReportHistoryActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            AAA_klaxonTheme {
-                ReportHistoryScreen(onBackPressed = { finish() })
-            }
-        }
-    }
-}
+// 신고 내역 데이터 클래스
+data class ReportHistory(
+    val date: String,
+    val location: String,
+    val sign: String
+)
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportHistoryScreen(onBackPressed: () -> Unit) {
-    // 예시 신고 내역
-    val reportHistories = listOf(
-        ReportHistory(
-            date = "2024.07.24",
-            location = "서울특별시 강북구 4.19로",
-            sign = "우회전 표지판"
-        ),
-        ReportHistory(
-            date = "2024.07.14",
-            location = "서울특별시 강북구 수유동 270-63",
-            sign = "진입금지 표지판"
-        )
-    )
+fun ReportHistoryScreen(
+    navController: NavController,
+    reportHistoryViewModel: ReportHistoryViewModel = viewModel()
+) {
+    // ViewModel에서 상태를 직접 읽어옴
+    val reportHistories by remember { mutableStateOf(reportHistoryViewModel.reportHistories) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(top = 50.dp),
         verticalArrangement = Arrangement.Top
     ) {
-
-        TopAppBar(
-            title = {
-                Text(
-                    text = "오분류 신고내역",
-                    textAlign = TextAlign.Center,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 16.dp)
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { onBackPressed() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            }
+        CustomTopBar(
+            title = "오분류 신고내역",
+            onBackClick = { navController.navigateUp() }
         )
-
 
         Text(
             text = "2024년 7월",
@@ -84,6 +63,7 @@ fun ReportHistoryScreen(onBackPressed: () -> Unit) {
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             modifier = Modifier
+                .padding(top = 20.dp)
                 .padding(bottom = 16.dp)
         )
 
@@ -126,15 +106,7 @@ fun ReportHistoryItem(report: ReportHistory) {
                 fontWeight = FontWeight.Normal
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
-
-data class ReportHistory(
-    val date: String,
-    val location: String,
-    val sign: String
-)
