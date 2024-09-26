@@ -446,8 +446,14 @@ fun MyScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TitleCard(navController)
-        MapCard()
-        ListCard()
+        LazyColumn() {
+            item {
+                MapCard()
+            }
+            item {
+                ListCard()
+            }
+        }
     }
 }
 

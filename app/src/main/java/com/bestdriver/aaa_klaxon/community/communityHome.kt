@@ -1,3 +1,4 @@
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -52,55 +53,44 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.room.util.copy
 import com.bestdriver.aaa_klaxon.R
+import com.bestdriver.aaa_klaxon.network.community.CommunityWriteScreenViewModel
+import com.bestdriver.aaa_klaxon.network.community.Post
 import com.bestdriver.aaa_klaxon.ui.theme.AAA_klaxonTheme
 import com.bestdriver.aaa_klaxon.ui.theme.MyPurple
-import com.bestdriver.aaa_klaxon.viewmodel.CommunityWriteScreenViewModel
 
 
 @Composable
 fun CommunityScreen(
     navController: NavController,
     viewModel: CommunityWriteScreenViewModel,
-    newPostId: String? = null // 새로 추가된 게시글 ID를 선택적으로 받을 수 있습니다
+    newPostId: Int? = null
 ) {
-    val posts by viewModel.posts.collectAsState() // StateFlow<List<Post>>를 List<Post>로 변환합니다
+    val posts by viewModel.posts.collectAsState()
     val mostLikedPost by remember { derivedStateOf { viewModel.getMostLikedPost() } }
 
-    // 새 게시글 ID가 변경될 때마다 네비게이션을 수행
+    LaunchedEffect(Unit) {
+        viewModel.fetchPosts()
+    }
+
+    val filteredPosts = posts.filter {
+        it.title != null || it.main_text != null
+    }
+
+    Log.d("CommunityScreen", "Filtered posts: $filteredPosts")
+    Log.d("CommunityScreen", "All posts: $posts")
+
     LaunchedEffect(newPostId) {
         newPostId?.let { postId ->
-            val post = posts.find { it.id == postId }
-            if (post != null) {
-                // 게시글 상세 페이지로 이동
-                navController.navigate("communityFeed/${post.id}/${post.title}/${post.body}/${post.timestamp}/${post.likeCount}/${post.userName}") {
-                    // 이 코드로 인해 CommunityScreen이 제거되고 CommunityFeed가 보여질 것입니다.
+            posts.find { it.post_id == postId }?.let { post ->
+                navController.navigate("communityFeed/${Uri.encode(postId.toString())}/${Uri.encode(post.title)}/${Uri.encode(post.main_text)}/${Uri.encode(post.createdAt)}/${Uri.encode(post.like_count.toString())}/${Uri.encode(post.nickname)}") {
                     popUpTo("communityHome") { inclusive = true }
                 }
             }
         }
     }
 
-    // 네비게이션 효과를 추가합니다
-  //      LaunchedEffect(newPostId) {
-    //           newPostId?.let { postId ->
-    //          val post = posts.find { it.id == postId }
-    //          post?.let {
-    //              navController.navigate("communityFeed/${it.id}/${it.title}/${it.body}/${it.timestamp}/${it.likeCount}/${it.userName}") {
-    //                  popUpTo("communityScreen") { inclusive = true }
-    //              }
-    //          }
-    //      }
-    //  }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .padding(16.dp)
-                .padding(top = 40.dp)
-        ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.padding(16.dp).padding(top = 45.dp)) {
             item {
                 Text(
                     text = "커뮤니티",
@@ -109,41 +99,36 @@ fun CommunityScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentWidth(Alignment.CenterHorizontally)
-                        .padding(top = 20.dp, bottom = 50.dp)
+                        .padding(bottom = 30.dp)
                 )
             }
 
             item {
                 Text(
                     text = "인기 글",
-                    fontSize = 25.sp,
+                    fontSize = 23.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 )
             }
 
-            if (mostLikedPost != null) {
+            mostLikedPost?.let { post ->
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                            .clickable {
-                                navController.navigate("communityFeed/${mostLikedPost!!.id}/${mostLikedPost!!.title}/${mostLikedPost!!.body}/${mostLikedPost!!.timestamp}/${mostLikedPost!!.likeCount}/${mostLikedPost!!.userName}")
-                            }
-                    ) {
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                        navController.navigate("communityFeed/${Uri.encode(post.post_id.toString())}/${Uri.encode(post.title)}/${Uri.encode(post.main_text)}/${Uri.encode(post.createdAt)}/${Uri.encode(post.like_count.toString())}/${Uri.encode(post.nickname)}")
+                    }) {
                         PopularCard(
-                            title = mostLikedPost!!.title,
-                            content = mostLikedPost!!.body,
-                            date = mostLikedPost!!.timestamp,
-                            favoriteCount = mostLikedPost!!.likeCount,
-                            commentCount = mostLikedPost!!.commentCount
+                            title = post.title,
+                            content = post.main_text,
+                            date = post.createdAt,
+                            favoriteCount = post.like_count,
+                            commentCount = post.comment_count
                         )
                     }
                 }
-            } else {
+            } ?: run {
                 item {
                     Text(
                         text = "인기 글이 없습니다.",
@@ -155,54 +140,61 @@ fun CommunityScreen(
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(40.dp)) // PopularCard와 다음 항목 사이에 패딩 추가
-            }
+            item { Spacer(modifier = Modifier.height(30.dp)) }
 
-            items(posts) { post ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            navController.navigate("communityFeed/${post.id}/${post.title}/${post.body}/${post.timestamp}/${post.likeCount}/${post.userName}")
-                        }
-                ) {
-                    CommunityPost(
-                        title = post.title,
-                        content = post.body,
-                        date = post.timestamp,
-                        favoriteCount = post.likeCount,
-                        commentCount = post.commentCount
+            if (filteredPosts.isEmpty()) {
+                item {
+                    Text(
+                        text = "게시글이 없습니다.",
+                        fontSize = 18.sp,
+                        fontFamily = FontFamily(Font(R.font.pretendard_medium)),
+                        color = Color.Black,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-                ThinHorizontalLine()
-                Spacer(modifier = Modifier.height(20.dp))
+            } else {
+                items(filteredPosts) { post ->
+                    Log.d("CommunityScreen", "Post: $post")
+                    post?.let {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navController.navigate("communityFeed/${Uri.encode(it.post_id.toString())}/${Uri.encode(it.title)}/${Uri.encode(it.main_text)}/${Uri.encode(it.createdAt)}/${Uri.encode(it.like_count.toString())}/${Uri.encode(it.nickname)}")
+                                }
+                        ) {
+                            CommunityPost(
+                                title = it.title,
+                                content = it.main_text,
+                                date = it.createdAt,
+                                favoriteCount = it.like_count,
+                                commentCount = it.comment_count
+                            )
+                        }
+                        ThinHorizontalLine()
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                }
             }
 
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                )
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp))
             }
         }
 
         Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd) // 오른쪽 하단에 배치
-                .padding(16.dp) // 여백 추가
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
         ) {
             DrawCircleWithCross {
                 navController.navigate("communityWrite")
             }
         }
     }
-
 }
-
-
-
 
 
 
@@ -214,14 +206,14 @@ fun CommunityPost(
     favoriteCount: Int,
     commentCount: Int
 ) {
-    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+    Column(modifier = Modifier.padding(bottom = 10.dp)) {
         Text(
             text = title,
-            fontSize = 23.sp,
+            fontSize = 22.sp,
             fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 13.dp)
         )
 
         Text(
@@ -232,26 +224,26 @@ fun CommunityPost(
             fontFamily = FontFamily(Font(R.font.pretendard_medium)),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 13.dp)
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 15.dp)
+                .padding(bottom = 13.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = "Favorite",
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(22.dp)
                     .padding(end = 5.dp),
                 tint = MyPurple
             )
 
             Text(
                 text = favoriteCount.toString(),
-                fontSize = 16.sp,
+                fontSize = 13.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                 color = Color.Black,
                 modifier = Modifier.padding(end = 5.dp)
@@ -261,14 +253,14 @@ fun CommunityPost(
                 imageVector = Icons.Default.Person,
                 contentDescription = "Chat",
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(22.dp)
                     .padding(end = 5.dp),
                 tint = MyPurple
             )
 
             Text(
                 text = commentCount.toString(),
-                fontSize = 16.sp,
+                fontSize = 13.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                 color = Color.Black,
                 modifier = Modifier.padding(end = 10.dp)
@@ -278,7 +270,7 @@ fun CommunityPost(
 
             Text(
                 text = date,
-                fontSize = 16.sp,
+                fontSize = 13.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                 color = Color.Black.copy(alpha = 0.5f),
                 modifier = Modifier.padding(start = 10.dp)
@@ -343,14 +335,14 @@ fun PopularCard(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = "Favorite",
                         modifier = Modifier
-                            .size(30.dp)
+                            .size(25.dp)
                             .padding(bottom = 4.dp),
                         tint = MyPurple
                     )
 
                     Text(
                         text = favoriteCount.toString(),
-                        fontSize = 18.sp,
+                        fontSize = 15.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                         color = Color.Black
                     )
@@ -365,14 +357,14 @@ fun PopularCard(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Chat",
                         modifier = Modifier
-                            .size(30.dp)
+                            .size(25.dp)
                             .padding(bottom = 4.dp),
                         tint = MyPurple
                     )
 
                     Text(
                         text = commentCount.toString(),
-                        fontSize = 18.sp,
+                        fontSize = 15.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                         color = Color.Black
                     )
@@ -398,10 +390,10 @@ fun ThinHorizontalLine() {
 fun SmallVerticalLine() {
     Box(
         modifier = Modifier
-            .height(15.dp) // 선의 높이를 설정 (작게 설정)
+            .height(13.dp) // 선의 높이를 설정 (작게 설정)
             .width(1.dp) // 선의 두께를 설정 (얇게 설정)
             .background(Color.Black.copy(alpha = 0.3f)) // 선의 색상 및 투명도 설정
-            .padding(top = 3.dp)
+            .padding(top = 10.dp)
     )
 }
 
@@ -452,19 +444,22 @@ data class CommunityItem(
     val commentCount: Int
 )
 
-@Composable
-fun PreviewCommunityScreen() {
-    // Create a mock or test instance of the ViewModel
-    val mockViewModel = CommunityWriteScreenViewModel().apply {
-        // Initialize with some test data
-        val posts = listOf(
-            Post("wow","Test Post 1", "This is a test post", "User1", "2024-09-03T10:00:00Z", 10, 5),
-            Post("wow", "Test Post 2", "Another test post", "User2", "2024-09-03T11:00:00Z", 5, 2)
-        )
-    }
-
-    CommunityScreen(
-        navController = rememberNavController(),
-        viewModel = mockViewModel
-    )
-}
+//@Composable
+//fun PreviewCommunityScreen() {
+//    // Create a mock or test instance of the ViewModel
+//    val mockViewModel = CommunityWriteScreenViewModel().apply {
+//        // Initialize with some test data
+//        val posts = listOf(
+//            Post(post_id = 1, user_id = 1, userName = "User1", title = "Test Post 1", main_text = "This is a test post", createdAt = "2024-09-03T10:00:00Z", like_count = 10, comment_count = 5),
+//            Post(post_id = 2, user_id = 2, userName = "User2", title = "Test Post 2", main_text = "Another test post", createdAt = "2024-09-03T11:00:00Z", like_count = 5, comment_count = 2)
+//        )
+//        // Assuming you have a method to set posts in the ViewModel
+//        // You might need to create a method to add mock posts
+//        _posts.value = posts // Update the private _posts directly
+//    }
+//
+//    CommunityScreen(
+//        navController = rememberNavController(),
+//        viewModel = mockViewModel
+//    )
+//}

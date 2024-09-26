@@ -10,10 +10,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.bestdriver.aaa_klaxon.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,7 +30,6 @@ fun CustomTopAppBar(
     Column(modifier = modifier) {
         CenterAlignedTopAppBar(
             modifier = Modifier
-                .padding(top = 20.dp)
                 .fillMaxWidth(), // Ensure the app bar fills the width of its parent
             navigationIcon = {
                 IconButton(onClick = onNavigationIconClick) {
@@ -40,7 +42,7 @@ fun CustomTopAppBar(
             title = {
                 Text(
                     text = pageTitle,
-                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
                     fontSize = 30.sp,
                     textAlign = TextAlign.Center,
                     color = titleColor // Apply the color to the title text
@@ -53,7 +55,7 @@ fun CustomTopAppBar(
         HorizontalDivider(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .padding(top = 30.dp)// Add horizontal padding
+                .padding(top = 20.dp)// Add horizontal padding
         )
     }
 }

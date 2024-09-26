@@ -16,8 +16,7 @@
         android:theme="@style/Theme.AAA_klaxon"
         android:enableOnBackInvokedCallback="true"
         android:networkSecurityConfig="@xml/network_security_config"
-
-        tools:targetApi="tiramisu">
+        tools:targetApi="31">
         <activity
             android:name=".MainActivity"
             android:exported="true"

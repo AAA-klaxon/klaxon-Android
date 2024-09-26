@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import com.bestdriver.aaa_klaxon.R
 import com.bestdriver.aaa_klaxon.community.CircleCanvas
 import com.bestdriver.aaa_klaxon.community.ThinHorizontalLine
+import com.bestdriver.aaa_klaxon.util.CustomTopAppBar
 import com.bestdriver.aaa_klaxon.viewmodel.NoticeViewModel
 
 data class Notice(
@@ -52,55 +54,39 @@ data class Notice(
 fun NoticeHomeScreen(navController: NavController, viewModel: NoticeViewModel) {
     val notices by viewModel.notices.observeAsState(emptyList())
 
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .padding(top = 20.dp)
-            .fillMaxWidth()
-            .fillMaxHeight()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp)
-                .padding(bottom = 50.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable { navController.navigate("mypage") }, // 뒤로가기 클릭 시 mypage로 이동
-                tint = Color.Black
-            )
-            Text(
-                text = "공지사항",
-                fontSize = 30.sp,
-                fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 90.dp)
+    Scaffold(
+        topBar = {
+            CustomTopAppBar(
+                navController = navController,
+                pageTitle = "공지사항",
+                onNavigationIconClick = { navController.navigate("mypage") }
             )
         }
-
-        HorizontalLine()
-        LazyColumn {
-            items(notices) { notice ->
-                NoticeItem(
-                    title = notice.title,
-                    date = notice.date,
-                    onClick = {
-                        // 선택한 공지사항으로 이동
-                        navController.navigate("noticeLetter/${notice.id}")
-                    }
-                )
-                ThinHorizontalLine()
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+                .fillMaxWidth()
+                .fillMaxHeight()
+        ) {
+            LazyColumn {
+                items(notices) { notice ->
+                    NoticeItem(
+                        title = notice.title,
+                        date = notice.date,
+                        onClick = {
+                            // 선택한 공지사항으로 이동
+                            navController.navigate("noticeLetter/${notice.id}")
+                        }
+                    )
+                    ThinHorizontalLine()
+                }
             }
         }
     }
 }
+
 
 @Composable
 fun NoticeItem(title: String, date: String, onClick: () -> Unit) {

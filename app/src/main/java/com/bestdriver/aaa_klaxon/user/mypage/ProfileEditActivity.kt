@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,6 +33,7 @@ import com.bestdriver.aaa_klaxon.R
 import com.bestdriver.aaa_klaxon.network.RetrofitClient
 import com.bestdriver.aaa_klaxon.network.mypage.MypageApiService
 import com.bestdriver.aaa_klaxon.ui.theme.MyPurple
+import com.bestdriver.aaa_klaxon.util.CustomTopAppBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,13 +48,12 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
     var serverNickname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("email") }
     var carNumber by remember { mutableStateOf("CarNumber") }
-    var updateMessage by remember { mutableStateOf("") } // 추가: 업데이트 메시지 상태
+    var updateMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
     val mypageApiService = RetrofitClient.getMypageApiService(context)
 
-    // 사용자 정보 가져오기
     LaunchedEffect(Unit) {
         try {
             val response = mypageApiService.getUserInfo()
@@ -70,185 +71,156 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
         }
     }
 
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp, bottom = 50.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable { navController.navigate("mypage") },
-                tint = Color.Black
-            )
-            Text(
-                text = "프로필 편집",
-                fontSize = 30.sp,
-                fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 90.dp)
+    Scaffold(
+        topBar = {
+            CustomTopAppBar(
+                navController = navController,
+                pageTitle = "프로필 편집",
+                onNavigationIconClick = { navController.navigate("mypage") }
             )
         }
-
-        Column(
+    ) { paddingValues ->
+        LazyColumn(
             modifier = modifier
-                .fillMaxSize()
-                .clickable {
-                    focusManager.clearFocus()
-                },
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(paddingValues)
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp) // 항목 간의 간격
         ) {
-            CircleWithCross(modifier = Modifier.clickable {
-                val intent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                context.startActivity(intent)
-            })
-
-            Text(
-                text = serverNickname,
-                fontSize = 25.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black,
-                modifier = Modifier.padding(top = 10.dp)
-            )
-
-            Text(
-                text = "아이디(이메일)",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .padding(bottom = 5.dp)
-                    .align(Alignment.Start)
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-            ) {
+            item {
+                CircleWithCross(modifier = Modifier.clickable {
+                    val intent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    context.startActivity(intent)
+                })
+            }
+            item {
                 Text(
-                    text = email,
+                    text = serverNickname,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = 10.dp)
+                )
+            }
+            item {
+                Text(
+                    text = "아이디(이메일)",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Gray,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
+                    color = Color.Black,
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 5.dp)
                 )
             }
-
-            Text(
-                text = "차번호",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .padding(bottom = 5.dp)
-                    .align(Alignment.Start)
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-            ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                ) {
+                    Text(
+                        text = email,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                    )
+                }
+            }
+            item {
                 Text(
-                    text = carNumber,
+                    text = "차번호",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Gray,
+                    color = Color.Black,
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 5.dp)
+                )
+            }
+            item {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp)
-                )
+                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                ) {
+                    Text(
+                        text = carNumber,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                    )
+                }
             }
-
-            Text(
-                text = "닉네임*",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .padding(bottom = 5.dp)
-                    .align(Alignment.Start)
-            )
-
-            OutlinedTextField(
-                value = nickname,
-                onValueChange = { nickname = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-            )
-
-            // 409 에러 메시지 표시
-            if (updateMessage == "이미 존재하는 사용자입니다.") {
+            item {
                 Text(
-                    text = updateMessage,
-                    color = MyPurple,
-                    fontSize = 16.sp,
-                    modifier = Modifier.align(Alignment.Start) // 왼쪽 정렬
+                    text = "닉네임*",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black,
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 5.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = {
-                    if (nickname.isNotEmpty()) {
-                        val nicknameUpdateRequest = NicknameUpdateRequest(nickname = nickname)
-                        updateNickname(mypageApiService, nicknameUpdateRequest, navController, { message ->
-                            updateMessage = message
-                        }, {
-                            nickname = ""
-                        })
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 16.dp)
-                    .padding(bottom = 50.dp),
-                enabled = nickname.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (nickname.isNotEmpty()) Color(0xFF321D87) else Color.Gray
-                ),
-                shape = RoundedCornerShape(5.dp)
-            ) {
-                Text("수정 완료", fontSize = 20.sp, color = Color.White)
-            }
-
-
-            // 업데이트 메시지 표시
-            if (updateMessage.isNotEmpty() && updateMessage != "이미 존재하는 사용자입니다.") {
-                Text(
-                    text = updateMessage,
-                    color = MyPurple,
-                    fontSize = 16.sp,
-                    modifier = Modifier.align(Alignment.Start) // 왼쪽 정렬
+            item {
+                OutlinedTextField(
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                 )
+            }
+            item {
+                // 409 에러 메시지 표시
+                if (updateMessage == "이미 존재하는 사용자입니다.") {
+                    Text(
+                        text = updateMessage,
+                        color = MyPurple,
+                        fontSize = 16.sp,
+                        modifier = Modifier.fillMaxWidth() // 왼쪽 정렬
+                    )
+                }
+            }
+            item {
+                Button(
+                    onClick = {
+                        if (nickname.isNotEmpty()) {
+                            val nicknameUpdateRequest = NicknameUpdateRequest(nickname = nickname)
+                            updateNickname(mypageApiService, nicknameUpdateRequest, navController, { message ->
+                                updateMessage = message
+                            }, {
+                                nickname = ""
+                            })
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .padding(bottom = 50.dp),
+                    enabled = nickname.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (nickname.isNotEmpty()) Color(0xFF321D87) else Color.Gray
+                    ),
+                    shape = RoundedCornerShape(5.dp)
+                ) {
+                    Text("수정 완료", fontSize = 20.sp, color = Color.White)
+                }
+            }
+            item {
+                // 업데이트 메시지 표시
+                if (updateMessage.isNotEmpty() && updateMessage != "이미 존재하는 사용자입니다.") {
+                    Text(
+                        text = updateMessage,
+                        color = MyPurple,
+                        fontSize = 16.sp,
+                        modifier = Modifier.fillMaxWidth() // 왼쪽 정렬
+                    )
+                }
             }
         }
     }
 }
+
 
 private fun updateNickname(
     mypageApiService: MypageApiService,

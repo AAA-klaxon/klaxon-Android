@@ -17,7 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
 import com.bestdriver.aaa_klaxon.ui.theme.AAA_klaxonTheme
+import com.bestdriver.aaa_klaxon.util.CustomTopAppBar
 
 class ReportHistoryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,57 +50,47 @@ fun ReportHistoryScreen(onBackPressed: () -> Unit) {
         )
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top
-    ) {
-
-        TopAppBar(
-            title = {
-                Text(
-                    text = "오분류 신고내역",
-                    textAlign = TextAlign.Center,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 16.dp)
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { onBackPressed() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            }
-        )
-
-
-        Text(
-            text = "2024년 7월",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
+    Scaffold(
+        topBar = {
+            CustomTopAppBar(
+                navController = rememberNavController(), // 필요시 navController를 전달
+                pageTitle = "오분류 신고내역",
+                onNavigationIconClick = onBackPressed
+            )
+        }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .padding(bottom = 16.dp)
-        )
+                .fillMaxSize()
+                .padding(paddingValues) // topBar에 의해 생기는 padding 처리
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Top
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
 
-        if (reportHistories.isEmpty()) {
-            Text("신고 내역이 없습니다.")
-        } else {
-            LazyColumn {
-                items(reportHistories) { report ->
-                    ReportHistoryItem(report)
-                    Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "2024년 7월",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+            )
+
+            if (reportHistories.isEmpty()) {
+                Text("신고 내역이 없습니다.")
+            } else {
+                LazyColumn {
+                    items(reportHistories) { report ->
+                        ReportHistoryItem(report)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun ReportHistoryItem(report: ReportHistory) {

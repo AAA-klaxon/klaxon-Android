@@ -31,6 +31,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,8 +49,9 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.bestdriver.aaa_klaxon.R
+import com.bestdriver.aaa_klaxon.network.community.CommunityWriteScreenViewModel
 import com.bestdriver.aaa_klaxon.ui.theme.MyPurple
-import com.bestdriver.aaa_klaxon.viewmodel.CommunityWriteScreenViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -58,26 +60,17 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
 
-data class Post(
-    val id: String = UUID.randomUUID().toString(), // 각 게시글에 고유 ID 추가
-    val title: String,
-    val body: String,
-    val userName: String,
-    val timestamp: String,
-    var likeCount: Int, // 추가된 부분
-    val commentCount: Int // 댓글 수를 추가
-)
+
 
 @Composable
 fun CommunityWriteScreen(
     navController: NavController,
     viewModel: CommunityWriteScreenViewModel,
     userName: String,
-    onSubmitClick: (title: String, body: String, timestamp: String) -> String // ID를 반환하는 함수
+    onSubmitClick: (String, String, String) -> Unit // 추가된 매개변수
 ) {
     val titleState = remember { mutableStateOf("") }
     val textState = remember { mutableStateOf("") }
-
     val maxLength = 500
     val titleMaxLength = 100
 
@@ -86,6 +79,7 @@ fun CommunityWriteScreen(
     }
 
     val keyboardController = LocalSoftwareKeyboardController.current
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -136,21 +130,27 @@ fun CommunityWriteScreen(
                         .align(Alignment.CenterVertically)
                         .clickable {
                             if (isSubmitEnabled) {
-                                val currentTime = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
-                                    Calendar.getInstance().time
-                                )
-                                // 새로운 글을 등록하고 글의 ID를 반환받습니다
-                                val newPostId = onSubmitClick(
-                                    titleState.value,
-                                    textState.value,
-                                    currentTime
-                                )
-                                navController.navigate("communityHome?newPostId=$newPostId") {
-                                    popUpTo("communityWrite") { inclusive = true }
+                                val title = titleState.value
+                                val body = textState.value
+                                val nickname = userName
+
+                                // onSubmitClick 안에서 ViewModel의 addPost를 호출
+                                coroutineScope.launch {
+                                    val result = viewModel.addPost(title, body, nickname)
+                                    if (result != null) {
+                                        // 성공적으로 게시물이 등록되었으면 CommunityHome으로 이동
+                                        navController.navigate("communityHome?newPostId=$result") {
+                                            popUpTo("communityWrite") { inclusive = true }
+                                        }
+                                    } else {
+                                        // 실패 시 에러 메시지 출력
+                                        Log.e("CommunityWriteScreen", "Failed to add post")
+                                    }
                                 }
                             }
                         }
                 )
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -160,6 +160,7 @@ fun CommunityWriteScreen(
                 onValueChange = { newTitle ->
                     if (newTitle.length <= titleMaxLength) {
                         titleState.value = newTitle
+                        Log.d("CommunityWriteScreen", "Title updated: $newTitle")
                     }
                 },
                 placeholder = {
@@ -181,7 +182,9 @@ fun CommunityWriteScreen(
                 ),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    unfocusedContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent, // 아래 선 색상
+                    unfocusedIndicatorColor = Color.Transparent // 아래 선 색상
                 )
             )
 

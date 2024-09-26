@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +47,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bestdriver.aaa_klaxon.cash.CashScreen
@@ -60,22 +62,25 @@ import com.bestdriver.aaa_klaxon.mypage.DeleteAccountScreen
 import com.bestdriver.aaa_klaxon.mypage.MyPageScreen
 import com.bestdriver.aaa_klaxon.mypage.ProfileEditScreen
 import com.bestdriver.aaa_klaxon.mypage.ReportHistoryScreen
+import com.bestdriver.aaa_klaxon.network.community.CommunityWriteScreenViewModel
 import com.bestdriver.aaa_klaxon.ui.theme.AAA_klaxonTheme
 import com.bestdriver.aaa_klaxon.user.mypage.NoticeHomeScreen
 import com.bestdriver.aaa_klaxon.user.mypage.NoticeLetterScreen
-import com.bestdriver.aaa_klaxon.viewmodel.CommunityWriteScreenViewModel
+import com.bestdriver.aaa_klaxon.util.BottomNavigationItem
+import com.bestdriver.aaa_klaxon.util.CustomBottomBar
 import com.bestdriver.aaa_klaxon.viewmodel.NoticeViewModel
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // 이 메소드는 앱의 UI가 화면의 끝까지 확장되도록 설정하는 사용자 정의 메소드입니다.
+        enableEdgeToEdge()
         setContent {
             AAA_klaxonTheme {
                 val navController = rememberNavController()
-                val communityViewModel: CommunityWriteScreenViewModel = viewModel() // CommunityViewModel 초기화
-                val noticeViewModel: NoticeViewModel = viewModel() // NoticeViewModel 초기화
+                val communityViewModel: CommunityWriteScreenViewModel = viewModel()
+                val noticeViewModel: NoticeViewModel = viewModel()
 
                 val items = listOf(
                     BottomNavigationItem(
@@ -101,52 +106,28 @@ class MainActivity : ComponentActivity() {
                     )
                 )
 
-                var selectedItemIndex by rememberSaveable {
-                    mutableStateOf(1) // 기본적으로 "홈" 탭을 선택 상태로 설정
-                }
+                var selectedItemIndex by rememberSaveable { mutableStateOf(1) }
 
                 Scaffold(
                     bottomBar = {
-                        NavigationBar {
-                            items.forEachIndexed { index, item ->
-                                NavigationBarItem(
-                                    selected = selectedItemIndex == index,
-                                    onClick = {
-                                        selectedItemIndex = index
-                                        navController.navigate(item.route) {
-                                            // 필요한 경우 추가 설정
-                                            launchSingleTop = true
-                                        }
-                                    },
-                                    label = {
-                                        Text(text = item.title)
-                                    },
-                                    icon = {
-                                        BadgedBox(
-                                            badge = {
-                                                if (item.hasNews) {
-                                                    Badge()
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = if (index == selectedItemIndex) {
-                                                    item.selectedIcon
-                                                } else item.unselectedIcon,
-                                                contentDescription = item.title,
-                                                modifier = Modifier.size(25.dp)
-                                            )
-                                        }
-                                    }
-                                )
-                            }
+                        // 현재 화면이 login, signup, communityWrite가 아닌지 확인
+                        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                        if (currentRoute in listOf("communityHome", "main", "myPage")) {
+                            CustomBottomBar(
+                                navController = navController,
+                                items = items,
+                                selectedItemIndex = selectedItemIndex,
+                                onItemSelected = { index ->
+                                    selectedItemIndex = index
+                                }
+                            )
                         }
                     }
                 ) { innerPadding ->
                     AppNavGraph(
                         navController = navController,
                         communityViewModel = communityViewModel,
-                        noticeViewModel = noticeViewModel, // 추가된 부분
+                        noticeViewModel = noticeViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -155,14 +136,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// 데이터 클래스 정의
-data class BottomNavigationItem(
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    val hasNews: Boolean,
-    val route: String
-)
+
+
 
 @Composable
 fun AppNavGraph(
@@ -191,64 +166,56 @@ fun AppNavGraph(
             CashScreen(navController)
         }
         composable("communityHome") { backStackEntry ->
-            val newPostId = backStackEntry.arguments?.getString("newPostId")
+            val newPostId = backStackEntry.arguments?.getString("newPostId")?.toIntOrNull()
             CommunityScreen(
                 navController = navController,
                 viewModel = communityViewModel,
                 newPostId = newPostId
             )
         }
+
         composable("communityWrite") {
+            val coroutineScope = rememberCoroutineScope()
             CommunityWriteScreen(
                 navController = navController,
                 viewModel = communityViewModel,
-                userName = "임시 사용자", // 실제 사용자 이름으로 교체
-                onSubmitClick = { title, body, timestamp ->
-                    // 새 게시글 추가 후 ID를 반환받습니다
-                    val newPostId = communityViewModel.addPost(
-                        title = title,
-                        body = body,
-                        userName = "임시 사용자",
-                        timestamp = timestamp
-                    )
-                    // 새 게시글 ID를 포함하여 CommunityHome으로 돌아갑니다
-                    navController.navigate("communityHome?newPostId=$newPostId") {
-                        popUpTo("communityWrite") { inclusive = true }
+                userName = "임시 사용자",
+                onSubmitClick = { title, body, nickname ->
+                    coroutineScope.launch {
+                        val newPostId = communityViewModel.addPost(title = title, body = body, nickname = nickname)
+                        newPostId?.let {
+                            navController.navigate("communityHome?newPostId=$it") {
+                                popUpTo("communityWrite") { inclusive = true }
+                            }
+                        }
                     }
-                    newPostId // 새 게시글의 ID를 반환합니다
                 }
             )
         }
 
         composable(
-            route = "communityFeed/{postId}/{postTitle}/{postBody}/{timestamp}/{likeCount}/{userName}",
+            route = "communityFeed/{postId}/{title}/{mainText}/{createdAt}/{likeCount}/{nickname}",
             arguments = listOf(
-                navArgument("postId") { type = NavType.StringType },
-                navArgument("postTitle") { type = NavType.StringType },
-                navArgument("postBody") { type = NavType.StringType },
-                navArgument("timestamp") { type = NavType.StringType },
-                navArgument("likeCount") { type = NavType.IntType },
-                navArgument("userName") { type = NavType.StringType }
+                navArgument("postId") { type = NavType.IntType },
+                navArgument("title") { type = NavType.StringType },
+                navArgument("mainText") { type = NavType.StringType },
+                navArgument("createdAt") { type = NavType.StringType },
+                navArgument("likeCount") { type = NavType.StringType },
+                navArgument("nickname") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val postId = backStackEntry.arguments?.getString("postId")
-            val postTitle = backStackEntry.arguments?.getString("postTitle")
-            val postBody = backStackEntry.arguments?.getString("postBody")
-            val timestamp = backStackEntry.arguments?.getString("timestamp")
-            val likeCount = backStackEntry.arguments?.getInt("likeCount")
-            val userName = backStackEntry.arguments?.getString("userName")
+            val postId = backStackEntry.arguments?.getInt("postId")
 
-            if (postId != null && postTitle != null && postBody != null && timestamp != null && likeCount != null && userName != null) {
+            if (postId != null) {
                 CommunityFeedScreen(
                     navController = navController,
                     viewModel = communityViewModel,
-                    postId = postId, // 필수 매개변수
-                    postTitle = postTitle,
-                    postBody = postBody,
-                    timestamp = timestamp,
-                    likeCount = likeCount,
-                    userName = userName
+                    postId = postId
                 )
+            } else {
+                // 오류 화면으로 이동
+                navController.navigate("errorScreen")
+                navController.popBackStack() // 이전 화면으로 돌아가게 함
             }
         }
 

@@ -1,6 +1,5 @@
 package com.bestdriver.aaa_klaxon.community
 
-import Post
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -37,17 +36,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -60,86 +62,94 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.bestdriver.aaa_klaxon.R
+import com.bestdriver.aaa_klaxon.network.TokenManager
+import com.bestdriver.aaa_klaxon.network.community.Comment
+import com.bestdriver.aaa_klaxon.network.community.CommentRequest
+import com.bestdriver.aaa_klaxon.network.community.CommunityWriteScreenViewModel
+import com.bestdriver.aaa_klaxon.network.community.Post
 import com.bestdriver.aaa_klaxon.ui.theme.MyPurple
-import com.bestdriver.aaa_klaxon.viewmodel.CommunityWriteScreenViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 
-data class Comment(
-    val userName: String,
-    val body: String,
-    val date: String,
-    val time: String
-)
+
 
 @Composable
 fun CommunityFeedScreen(
     navController: NavController,
     viewModel: CommunityWriteScreenViewModel,
-    postId: String, // 게시글 ID는 필수
-    postTitle: String? = null,
-    postBody: String? = null,
-    timestamp: String? = null,
-    likeCount: Int? = null,
-    userName: String? = null
+    postId: Int // 게시글 ID
 ) {
-    // StateFlow의 value를 사용하여 댓글 리스트를 가져옵니다.
-    val comments by viewModel.comments.collectAsState() // StateFlow의 현재 값을 구독
+    // TokenManager 인스턴스 가져오기
+    val context = LocalContext.current
+    val tokenManager = TokenManager(context)
+    val token = "Bearer ${tokenManager.getToken() ?: ""}" // 토큰 가져오기
 
-    // 댓글 리스트를 가져옵니다.
-    val postComments = comments[postId] ?: emptyList()
+    LaunchedEffect(postId) {
+        viewModel.fetchPostById(postId)
+        viewModel.fetchCommentsForPost(postId)
+    }
 
-    // UI를 구성합니다.
+    val post by viewModel.selectedPost.collectAsState()
+    val comments by viewModel.comments.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Icon(
-            imageVector = Icons.Default.ArrowBack,
-            contentDescription = "Back",
-            modifier = Modifier
-                .size(40.dp)
-                .clickable { navController.navigateUp() },
-            tint = Color.Black
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-
-        if (postTitle != null && postBody != null) {
-            PostItem(
-                post = Post(
-                    id = postId,
-                    title = postTitle,
-                    body = postBody,
-                    timestamp = timestamp ?: "",
-                    likeCount = likeCount ?: 0,
-                    userName = userName ?: "",
-                    commentCount = postComments.size // 댓글 수를 전달
-                ),
-                viewModel = viewModel // ViewModel을 전달
-            )
-        } else {
-            Text("Post details not available")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .weight(1f)
+                .weight(1f) // 스크롤 가능한 부분이 전체 공간을 차지하도록
         ) {
-            items(postComments) { comment ->
-                CommentItem(comment)
+            // 뒤로 가기 아이콘
+            item {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier
+                        .size(35.dp)
+                        .padding(top = 10.dp)
+                        .clickable { navController.navigateUp() },
+                    tint = Color.Black
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            // 게시글 내용
+            post?.let { validPost ->
+                item {
+                    PostItem(
+                        post = validPost,
+                        viewModel = viewModel
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // 댓글 목록을 표시하는 아이템
+                comments[validPost.post_id]?.forEach { comment ->
+                    item {
+                        CommentItem(comment)
+                    }
+                }
+            } ?: run {
+                item {
+                    Text("게시글을 불러오는 중입니다...")
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        CommentSection(viewModel, postId)
+        // 댓글 입력란을 LazyColumn의 아래에 고정
+        CommentSection(viewModel, post?.post_id ?: -1, token) // token 전달
     }
 }
 
@@ -147,66 +157,45 @@ fun CommunityFeedScreen(
 
 
 
+
+
 @Composable
 fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
-    // 예를 들어 댓글 리스트를 가져오는 부분
-    val comments = viewModel.getCommentsForPost(post.id)
-
-    // 상태를 기억하고 초기화합니다.
     val isLiked = remember { mutableStateOf(false) }
-    val likeCount = remember { mutableStateOf(post.likeCount) } // 좋아요 카운트 초기화
+    val likeCount = remember { mutableStateOf(post.like_count) }
 
-    // 로그 출력
-    Log.d("PostItem", "Comments size: ${comments.size}")
-    Log.d("PostItem", "First comment: ${comments.getOrNull(0)}")
-    Log.d("PostItem", "Second comment: ${comments.getOrNull(1)}")
+    val coroutineScope = rememberCoroutineScope() // Coroutine scope 생성
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp)
+            .padding(top = 10.dp)
     ) {
         CircleCanvas(
-            modifier = Modifier
-                .size(70.dp) // Canvas의 크기를 지정
+            modifier = Modifier.size(60.dp)
         )
-        Column(
-            modifier = Modifier
-                .padding(start = 20.dp)
-        ) {
+        Column(modifier = Modifier.padding(start = 20.dp)) {
             Text(
-                text = post.userName,
+                text = post.nickname,
                 fontSize = 25.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                 color = Color.Black,
-                modifier = Modifier
-                    .padding(bottom = 5.dp)
- )
-
+                modifier = Modifier.padding(bottom = 5.dp)
+            )
             Row {
                 Text(
-                    text = post.timestamp.split(" ")[0], // 날짜
+                    text = post.createdAt.split(" ")[0],
                     fontSize = 17.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                     color = Color.Black.copy(alpha = 0.5f)
                 )
-//                Text(
-//                    text = post.timestamp.split(" ")[1], // 시간
-//                    fontSize = 18.sp,
-//                    fontFamily = FontFamily(Font(R.font.pretendard_regular)),
-//                    color = Color.Black.copy(alpha = 0.5f),
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(start = 8.dp)
-//                        .padding(bottom = 20.dp)
-//                )
             }
         }
     }
+
     Spacer(modifier = Modifier.height(10.dp))
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -220,23 +209,28 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
             imageVector = if (isLiked.value) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             contentDescription = "Favorite",
             modifier = Modifier
-                .size(43.dp)
-                .padding(start = 10.dp)
+                .size(35.dp)
                 .clickable {
-                    isLiked.value = !isLiked.value
-                    likeCount.value = if (isLiked.value) likeCount.value + 1 else likeCount.value - 1
-                    viewModel.updateLikeCount(post.id, isLiked.value)
+                    coroutineScope.launch {
+                        isLiked.value = !isLiked.value
+                        likeCount.value = if (isLiked.value) likeCount.value + 1 else likeCount.value - 1
+                        if (isLiked.value) {
+                            viewModel.addLike(post.post_id) // 좋아요 추가
+                        } else {
+                            viewModel.removeLike(post.post_id) // 좋아요 취소
+                        }
+                    }
                 },
             tint = MyPurple
         )
     }
     Text(
-        text = post.body,
+        text = post.main_text,
         fontSize = 20.sp,
         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
         color = Color.Black,
         modifier = Modifier
-            .padding(top = 20.dp)
+            .padding(top = 10.dp)
             .padding(bottom = 15.dp)
     )
     Row(
@@ -271,7 +265,7 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
         )
 
         Text(
-            text = post.commentCount.toString(), // 댓글 수를 표시
+            text = post.comment_count.toString(), // 댓글 수를 표시
             fontSize = 18.sp,
             fontFamily = FontFamily(Font(R.font.pretendard_regular)),
             color = Color.Black,
@@ -281,10 +275,6 @@ fun PostItem(post: Post, viewModel: CommunityWriteScreenViewModel) {
     }
 }
 
-
-
-
-
 @Composable
 fun CommentItem(comment: Comment) {
     Column(
@@ -293,17 +283,15 @@ fun CommentItem(comment: Comment) {
             .padding(top = 30.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             CircleCanvas(
-                modifier = Modifier
-                    .size(40.dp) // Canvas의 크기를 지정
+                modifier = Modifier.size(40.dp) // Canvas의 크기를 지정
             )
             Text(
-                text = comment.userName,
+                text = comment.nickname,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
+                fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                 color = Color.Black,
                 modifier = Modifier
                     .padding(start = 10.dp)
@@ -315,37 +303,28 @@ fun CommentItem(comment: Comment) {
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Black,
-            modifier = Modifier
-                .padding(top = 10.dp)
+            modifier = Modifier.padding(top = 10.dp)
         )
-        Row (
-            modifier = Modifier
-                .padding(top = 8.dp)
+        Row(
+            modifier = Modifier.padding(top = 8.dp)
         ) {
             Text(
-                text = comment.date,
+                text = comment.createdAt, // createdAt으로 변경
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.Black.copy(alpha = 0.5f),
             )
-            Text(
-                text = comment.time,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black.copy(alpha = 0.5f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 5.dp)
-                    .padding(bottom = 25.dp)
-            )
+            Spacer(modifier = Modifier.width(5.dp)) // 여백 추가
         }
         ThinHorizontalLine()
     }
 }
 
+
 @Composable
-fun CommentSection(viewModel: CommunityWriteScreenViewModel, postId: String) {
+fun CommentSection(viewModel: CommunityWriteScreenViewModel, postId: Int, token: String) {
     val commentText = remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -359,10 +338,7 @@ fun CommentSection(viewModel: CommunityWriteScreenViewModel, postId: String) {
             value = commentText.value,
             onValueChange = { newComment -> commentText.value = newComment },
             placeholder = {
-                Text(
-                    text = "댓글을 입력하세요",
-                    fontFamily = FontFamily(Font(R.font.pretendard_medium))
-                )
+                Text(text = "댓글을 입력하세요", fontFamily = FontFamily(Font(R.font.pretendard_medium)))
             },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
@@ -377,22 +353,16 @@ fun CommentSection(viewModel: CommunityWriteScreenViewModel, postId: String) {
                 .padding(bottom = 4.dp)
                 .background(MyPurple)
                 .clickable {
-                    // 날짜와 시간 포맷을 SimpleDateFormat을 이용해 설정합니다.
-                    val dateFormat = SimpleDateFormat("MM/dd", Locale.getDefault())
-                    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                    val currentDate = dateFormat.format(Calendar.getInstance().time)
-                    val currentTime = timeFormat.format(Calendar.getInstance().time)
-
-                    viewModel.addComment(
-                        postId = postId,
-                        comment = Comment(
-                            userName = "임시 사용자", // 사용자 이름을 동적으로 설정할 수 있습니다.
-                            body = commentText.value,
-                            date = currentDate,
-                            time = currentTime
-                        )
-                    )
-                    commentText.value = "" // 댓글 등록 후 텍스트 필드를 비웁니다.
+                    coroutineScope.launch {
+                        val request = CommentRequest(text = commentText.value)
+                        // 댓글 추가 요청
+                        val success = viewModel.addComment(postId, request)
+                        if (success) {
+                            // 댓글 목록 갱신
+                            viewModel.fetchCommentsForPost(postId)
+                            commentText.value = "" // 텍스트 필드 비우기
+                        }
+                    }
                 }
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
@@ -401,12 +371,12 @@ fun CommentSection(viewModel: CommunityWriteScreenViewModel, postId: String) {
                 fontSize = 16.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                 color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.Center)
+                modifier = Modifier.align(Alignment.Center)
             )
         }
     }
 }
+
 
 
 
@@ -431,15 +401,15 @@ fun ThinHorizontalLine() {
         modifier = Modifier
             .fillMaxWidth(),
         thickness = 1.dp,
-        color = Color.Black.copy(alpha = 0.4f)
+        color = Color.Black.copy(alpha = 0.3f)
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewCommunityFeedScreen() {
-    val dummyViewModel = CommunityWriteScreenViewModel().apply {
-        // 필요한 경우 ViewModel에 더미 데이터를 설정합니다.
-        // 예: posts.add(Post(...))
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewCommunityFeedScreen() {
+//    val dummyViewModel = CommunityWriteScreenViewModel().apply {
+//        // 필요한 경우 ViewModel에 더미 데이터를 설정합니다.
+//        // 예: posts.add(Post(...))
+//    }
+//}

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.LiveData
+import com.bestdriver.aaa_klaxon.util.CustomTopAppBar
 import com.bestdriver.aaa_klaxon.viewmodel.NoticeViewModel
 import kotlin.reflect.KProperty
 
@@ -48,76 +50,61 @@ fun NoticeLetterScreen(navController: NavController, noticeId: String, viewModel
 
     // 공지사항이 존재할 때 UI를 구성합니다.
     notice?.let {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxSize()
-        ) {
-            // 상단의 뒤로가기 버튼과 제목을 표시하는 Row입니다.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp, bottom = 50.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable { navController.navigateUp() },
-                    tint = Color.Black
+        Scaffold(
+            topBar = {
+                CustomTopAppBar(
+                    navController = navController,
+                    pageTitle = "공지사항",
+                    onNavigationIconClick = { navController.navigateUp() }
                 )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues) // topBar에 의해 생기는 padding 처리
+                    .padding(16.dp)
+                    .fillMaxSize()
+            ) {
+                // 공지사항의 제목을 표시합니다.
                 Text(
-                    text = "공지사항",
-                    fontSize = 30.sp,
+                    text = it.title,
+                    fontSize = 20.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                     color = Color.Black,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 90.dp),
-                    textAlign = TextAlign.Center // 제목을 중앙 정렬
+                        .padding(bottom = 10.dp)
+                )
+
+                // 공지사항의 날짜를 표시합니다.
+                Text(
+                    text = it.date,
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(Font(R.font.pretendard_medium)),
+                    color = Color.Black.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp)
+                )
+
+                // 공지사항과 본문 사이의 선을 표시합니다.
+                ThinHorizontalLine() // 수정된 이름을 사용하세요. (여기서는 가정한 것임)
+
+                // 공지사항의 본문을 표시합니다.
+                Text(
+                    text = it.body,
+                    fontSize = 17.sp,
+                    fontFamily = FontFamily(Font(R.font.pretendard_regular)),
+                    color = Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 25.dp)
                 )
             }
-
-            // 공지사항의 제목을 표시합니다.
-            Text(
-                text = it.title,
-                fontSize = 20.sp,
-                fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-
-            // 공지사항의 날짜를 표시합니다.
-            Text(
-                text = it.date,
-                fontSize = 15.sp,
-                fontFamily = FontFamily(Font(R.font.pretendard_medium)),
-                color = Color.Black.copy(alpha = 0.5f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 25.dp)
-            )
-
-            // 공지사항과 본문 사이의 선을 표시합니다.
-            ThinHorizontalLine() // 수정된 이름을 사용하세요. (여기서는 가정한 것임)
-
-            // 공지사항의 본문을 표시합니다.
-            Text(
-                text = it.body,
-                fontSize = 17.sp,
-                fontFamily = FontFamily(Font(R.font.pretendard_regular)),
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp)
-            )
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
