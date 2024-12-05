@@ -103,7 +103,7 @@ fun NoticeItem(title: String, date: String, onClick: () -> Unit) {
         ) {
             Text(
                 text = title,
-                fontSize = 18.sp,
+                fontSize = 17.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                 color = Color.Black,
                 modifier = Modifier
@@ -112,7 +112,7 @@ fun NoticeItem(title: String, date: String, onClick: () -> Unit) {
             )
             Text(
                 text = date,
-                fontSize = 15.sp,
+                fontSize = 14.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                 color = Color.Black.copy(0.5f),
                 modifier = Modifier

@@ -66,6 +66,7 @@ import com.bestdriver.aaa_klaxon.network.community.CommunityWriteScreenViewModel
 import com.bestdriver.aaa_klaxon.ui.theme.AAA_klaxonTheme
 import com.bestdriver.aaa_klaxon.user.mypage.NoticeHomeScreen
 import com.bestdriver.aaa_klaxon.user.mypage.NoticeLetterScreen
+import com.bestdriver.aaa_klaxon.user.mypage.OnboardingScreen
 import com.bestdriver.aaa_klaxon.util.BottomNavigationItem
 import com.bestdriver.aaa_klaxon.util.CustomBottomBar
 import com.bestdriver.aaa_klaxon.viewmodel.NoticeViewModel
@@ -148,7 +149,7 @@ fun AppNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = "onboarding",
         Modifier.then(modifier)
     ) {
         composable("login") {
@@ -218,7 +219,9 @@ fun AppNavGraph(
                 navController.popBackStack() // 이전 화면으로 돌아가게 함
             }
         }
-
+        composable("onboarding") {
+            OnboardingScreen(navController)
+        }
         composable("myPage") {
             MyPageScreen(navController)
         }
@@ -245,6 +248,10 @@ fun AppNavGraph(
 
         composable("reportHistory") {
             ReportHistoryScreen(onBackPressed = { navController.popBackStack() })
+        }
+
+        composable("onboarding") {
+            OnboardingScreen(navController)
         }
     }
 }

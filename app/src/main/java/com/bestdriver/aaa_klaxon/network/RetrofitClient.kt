@@ -5,26 +5,35 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.bestdriver.aaa_klaxon.network.auth.AuthApiService
+import com.bestdriver.aaa_klaxon.network.community.CommunityApiService
+import com.bestdriver.aaa_klaxon.network.home.MapApiService
 import com.bestdriver.aaa_klaxon.network.mypage.MypageApiService
 import okhttp3.logging.HttpLoggingInterceptor
 
 object RetrofitClient {
     private const val BASE_URL = "http://43.202.104.135:3000/"
 
+    @Volatile
     private var retrofit: Retrofit? = null
 
     private fun getRetrofitInstance(context: Context): Retrofit {
-        if (retrofit == null) {
+        return retrofit ?: synchronized(this) {
             val tokenManager = TokenManager(context)
 
-            // 로깅 인터셉터 추가
+            val authApiService = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(OkHttpClient.Builder().build())
+                .build()
+                .create(AuthApiService::class.java)
+
             val loggingInterceptor = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             }
 
             val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor) // 로깅 인터셉터 추가
-                .addInterceptor(AuthInterceptor(tokenManager))
+                .addInterceptor(loggingInterceptor)
+                .addInterceptor(AuthInterceptor(tokenManager, authApiService))
                 .build()
 
             retrofit = Retrofit.Builder()
@@ -32,8 +41,8 @@ object RetrofitClient {
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build()
+            retrofit!!
         }
-        return retrofit!!
     }
 
     fun getAuthApiService(context: Context): AuthApiService {
@@ -42,5 +51,15 @@ object RetrofitClient {
 
     fun getMypageApiService(context: Context): MypageApiService {
         return getRetrofitInstance(context).create(MypageApiService::class.java)
+    }
+
+    // 필요한 다른 API 서비스 인스턴스 제공
+    fun getCommunityApiService(context: Context): CommunityApiService {
+        return getRetrofitInstance(context).create(CommunityApiService::class.java)
+    }
+
+    // 필요한 다른 API 서비스 인스턴스 제공
+    fun getMapApiService(context: Context): MapApiService {
+        return getRetrofitInstance(context).create(MapApiService::class.java)
     }
 }

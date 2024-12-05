@@ -43,7 +43,7 @@ fun CustomTopAppBar(
                 Text(
                     text = pageTitle,
                     fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
-                    fontSize = 30.sp,
+                    fontSize = 28.sp,
                     textAlign = TextAlign.Center,
                     color = titleColor // Apply the color to the title text
                 )

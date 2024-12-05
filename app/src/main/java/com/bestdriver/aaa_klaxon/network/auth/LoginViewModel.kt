@@ -1,6 +1,7 @@
 package com.bestdriver.aaa_klaxon.network.auth
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -45,13 +46,18 @@ class LoginViewModel(
                 try {
                     val response = authApiService.login(LoginRequest(email, password))
                     if (response.isSuccessful) {
-                        // 액세스 토큰을 응답 헤더에서 추출
+                        // 헤더에서 액세스 토큰 추출
                         val accessToken = response.headers()["Authorization"]
-                        if (accessToken != null) {
-                            tokenManager.saveToken(accessToken) // 액세스 토큰 저장
-                            onSuccess(accessToken) // 액세스 토큰 반환
+                        // 바디에서 리프레시 토큰 추출
+                        val refreshToken = response.body()?.result?.refreshToken
+
+                        if (!accessToken.isNullOrEmpty() && !refreshToken.isNullOrEmpty()) {
+                            tokenManager.saveAccessToken(accessToken)
+                            tokenManager.saveRefreshToken(refreshToken)
+                            onSuccess(accessToken)
                         } else {
-                            _loginError.value = "액세스 토큰이 응답 헤더에 없습니다."
+                            _loginError.value = "로그인 실패: ${response.code()}"
+
                         }
                     } else {
                         _loginError.value = "로그인 실패: ${response.code()}"

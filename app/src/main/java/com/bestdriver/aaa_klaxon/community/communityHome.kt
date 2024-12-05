@@ -94,7 +94,7 @@ fun CommunityScreen(
             item {
                 Text(
                     text = "커뮤니티",
-                    fontSize = 32.sp,
+                    fontSize = 28.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -106,7 +106,7 @@ fun CommunityScreen(
             item {
                 Text(
                     text = "인기 글",
-                    fontSize = 23.sp,
+                    fontSize = 20.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 )
@@ -132,7 +132,7 @@ fun CommunityScreen(
                 item {
                     Text(
                         text = "인기 글이 없습니다.",
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                         color = Color.Black,
                         modifier = Modifier.fillMaxWidth()
@@ -146,7 +146,7 @@ fun CommunityScreen(
                 item {
                     Text(
                         text = "게시글이 없습니다.",
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                         color = Color.Black,
                         modifier = Modifier.fillMaxWidth()
@@ -209,7 +209,7 @@ fun CommunityPost(
     Column(modifier = Modifier.padding(bottom = 10.dp)) {
         Text(
             text = title,
-            fontSize = 22.sp,
+            fontSize = 20.sp,
             fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
             modifier = Modifier
                 .fillMaxWidth()
@@ -243,7 +243,7 @@ fun CommunityPost(
 
             Text(
                 text = favoriteCount.toString(),
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                 color = Color.Black,
                 modifier = Modifier.padding(end = 5.dp)
@@ -260,17 +260,17 @@ fun CommunityPost(
 
             Text(
                 text = commentCount.toString(),
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                 color = Color.Black,
                 modifier = Modifier.padding(end = 10.dp)
             )
 
-            SmallVerticalLine()
+            SmallVerticalLine(modifier = Modifier.padding(vertical = 6.dp)) // 선을 중앙에 위치하도록 패딩 설정)
 
             Text(
                 text = date,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                 color = Color.Black.copy(alpha = 0.5f),
                 modifier = Modifier.padding(start = 10.dp)
@@ -299,80 +299,95 @@ fun PopularCard(
                 .background(MyPurple.copy(alpha = 0.2f))
                 .padding(horizontal = 16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight() // Box의 전체 높이를 사용
-                    .padding(vertical = 13.dp),
-                verticalArrangement = Arrangement.Center // 세로 가운데 정렬
-            ) {
-                Text(
-                    text = title,
-                    fontSize = 23.sp,
-                    fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
-                    color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                )
-
-                Text(
-                    text = content,
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.pretendard_medium)),
-                    color = Color.Black,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
             Row(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(vertical = 13.dp)
+                        .weight(1f), // 남은 공간을 채우도록 함
+                    verticalArrangement = Arrangement.SpaceAround
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = "Favorite",
+                    Text(
+                        text = title,
+                        fontSize = 20.sp,
+                        fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
+                        color = Color.Black,
                         modifier = Modifier
-                            .size(25.dp)
-                            .padding(bottom = 4.dp),
-                        tint = MyPurple
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
                     )
 
                     Text(
-                        text = favoriteCount.toString(),
-                        fontSize = 15.sp,
+                        text = content,
+                        fontSize = 18.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
-                        color = Color.Black
+                        color = Color.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(start = 10.dp)
+                Spacer(modifier = Modifier.width(10.dp))
+
+                // 좋아요 및 댓글 아이콘과 텍스트를 오른쪽에 배치
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp) // 아이콘 간격 설정
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Chat",
-                        modifier = Modifier
-                            .size(25.dp)
-                            .padding(bottom = 4.dp),
-                        tint = MyPurple
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Favorite",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(bottom = 2.dp),
+                            tint = MyPurple
+                        )
 
-                    Text(
-                        text = commentCount.toString(),
-                        fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.pretendard_medium)),
-                        color = Color.Black
-                    )
+                        Text(
+                            text = favoriteCount.toString(),
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily(Font(R.font.pretendard_medium)),
+                            color = Color.Black
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Chat",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(bottom = 2.dp),
+                            tint = MyPurple
+                        )
+
+                        Text(
+                            text = commentCount.toString(),
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily(Font(R.font.pretendard_medium)),
+                            color = Color.Black
+                        )
+                    }
                 }
+
             }
         }
     }
 }
+
+
 
 
 
@@ -387,13 +402,12 @@ fun ThinHorizontalLine() {
 }
 
 @Composable
-fun SmallVerticalLine() {
+fun SmallVerticalLine(modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
-            .height(13.dp) // 선의 높이를 설정 (작게 설정)
-            .width(1.dp) // 선의 두께를 설정 (얇게 설정)
-            .background(Color.Black.copy(alpha = 0.3f)) // 선의 색상 및 투명도 설정
-            .padding(top = 10.dp)
+        modifier = modifier
+            .height(13.dp)
+            .width(1.dp)
+            .background(Color.Black.copy(alpha = 0.3f))
     )
 }
 

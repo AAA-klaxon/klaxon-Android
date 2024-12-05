@@ -61,13 +61,13 @@ fun DeleteAccountScreen(navController: NavController, modifier: Modifier = Modif
             Text(
                 text = "클락션을 탈퇴하면,",
                 fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
-                fontSize = 25.sp,
+                fontSize = 23.sp,
                 modifier = Modifier.padding(bottom = 18.dp)
             )
 
             Text(
                 text = "내 프로필, 주행내역, 게시글, 댓글, 적립캐시 그 외 사용자가 설정한 모든 정보가 사라지고 복구가 불가능합니다.\n\n",
-                fontSize = 17.sp,
+                fontSize = 16.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                 modifier = Modifier.padding(bottom = 18.dp)
             )
@@ -128,7 +128,7 @@ fun DeleteAccountScreen(navController: NavController, modifier: Modifier = Modif
                 ) {
                     Text(
                         text = "탈퇴하기",
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                         color = Color.White
                     )

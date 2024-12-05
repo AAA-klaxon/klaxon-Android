@@ -68,7 +68,7 @@ fun NoticeLetterScreen(navController: NavController, noticeId: String, viewModel
                 // 공지사항의 제목을 표시합니다.
                 Text(
                     text = it.title,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                     color = Color.Black,
                     modifier = Modifier
@@ -79,7 +79,7 @@ fun NoticeLetterScreen(navController: NavController, noticeId: String, viewModel
                 // 공지사항의 날짜를 표시합니다.
                 Text(
                     text = it.date,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                     color = Color.Black.copy(alpha = 0.5f),
                     modifier = Modifier
@@ -93,7 +93,7 @@ fun NoticeLetterScreen(navController: NavController, noticeId: String, viewModel
                 // 공지사항의 본문을 표시합니다.
                 Text(
                     text = it.body,
-                    fontSize = 17.sp,
+                    fontSize = 15.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                     color = Color.Black,
                     modifier = Modifier

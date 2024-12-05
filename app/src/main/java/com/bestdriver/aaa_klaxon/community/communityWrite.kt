@@ -102,7 +102,7 @@ fun CommunityWriteScreen(
             ) {
                 Text(
                     text = "취소",
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
@@ -115,7 +115,7 @@ fun CommunityWriteScreen(
 
                 Text(
                     text = "글쓰기",
-                    fontSize = 32.sp,
+                    fontSize = 28.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -124,7 +124,7 @@ fun CommunityWriteScreen(
 
                 Text(
                     text = "등록",
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
@@ -166,7 +166,7 @@ fun CommunityWriteScreen(
                 placeholder = {
                     Text(
                         text = "제목",
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_semibold))
                     )
                 },
@@ -176,7 +176,7 @@ fun CommunityWriteScreen(
                     .background(Color.Transparent)
                     .border(1.dp, Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
                 textStyle = TextStyle(
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     color = Color.Black,
                     fontFamily = FontFamily(Font(R.font.pretendard_regular))
                 ),
@@ -206,7 +206,7 @@ fun CommunityWriteScreen(
                         .fillMaxWidth()
                         .padding(top = 5.dp),
                     textStyle = TextStyle(
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         color = Color.Black,
                         fontFamily = FontFamily(Font(R.font.pretendard_regular))
                     ),
@@ -221,7 +221,7 @@ fun CommunityWriteScreen(
                     placeholder = {
                         Text(
                             text = "내용을 입력하세요...",
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             color = Color.Black.copy(alpha = 0.5f)
                         )
                     }
@@ -233,7 +233,7 @@ fun CommunityWriteScreen(
                 ) {
                     Text(
                         text = "${textState.value.length}/$maxLength",
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         color = Color.Black.copy(alpha = 0.5f),
                         fontFamily = FontFamily(Font(R.font.pretendard_regular))
                     )

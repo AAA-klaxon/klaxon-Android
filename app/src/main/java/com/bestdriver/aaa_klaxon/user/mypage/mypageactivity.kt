@@ -88,7 +88,7 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
             Text(
                 text = "마이페이지",
                 textAlign = TextAlign.Center,
-                fontSize = 30.sp,
+                fontSize = 28.sp,
                 fontFamily = FontFamily(Font(R.font.pretendard_extrabold)),
                 color = Color.Black,
                 modifier = Modifier
@@ -118,7 +118,7 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 30.dp),
+                        .padding(start = 20.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
@@ -126,7 +126,7 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
                         fontSize = 23.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                         color = Color.Black,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(bottom = 15.dp)
                     )
                     Text(
                         text = carNumber,
@@ -139,7 +139,7 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
 
         item {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             Button(
                 onClick = {
@@ -177,35 +177,30 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
             Column {
                 Text(
                     text = "내 정보",
-                    fontSize = 23.sp,
+                    fontSize = 21.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                     color = Color.Black
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
-
-                MenuItem(
-                    text = "오분류 내역",
-                    onClick = { navController.navigate("reportHistory") }
-                )
+                Spacer(modifier = Modifier.height(10.dp))
 
                 MenuItem(
                     text = "캐시내역",
                     onClick = { navController.navigate("cash") }
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 ThinHorizontalLine()
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
                     text = "계정",
-                    fontSize = 23.sp,
+                    fontSize = 21.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                     color = Color.Black,
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier.padding(top = 10.dp)
                 )
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 MenuItem(
                     text = "로그아웃",
@@ -217,19 +212,19 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
                     onClick = { navController.navigate("deleteAccount") }
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 ThinHorizontalLine()
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
                     text = "공지사항",
-                    fontSize = 23.sp,
+                    fontSize = 21.sp,
                     fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                     color = Color.Black,
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier.padding(top = 10.dp)
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 MenuItem(
                     text = "공지사항",
@@ -277,12 +272,17 @@ fun MyPageScreen(navController: NavController, modifier: Modifier = Modifier) {
 // 로그아웃 요청을 처리하는 함수
 private fun logoutUser(context: Context, onLogoutSuccess: () -> Unit) {
     val mypageApiService = RetrofitClient.getMypageApiService(context)
+    val tokenManager = TokenManager(context)
+
     CoroutineScope(Dispatchers.IO).launch {
         try {
             val response = mypageApiService.logout()
             if (response.isSuccessful) {
-                TokenManager(context).clearToken() // 토큰 제거
-                onLogoutSuccess() // 로그아웃 성공 시 콜백 호출
+                // 모든 토큰 제거
+                tokenManager.clearTokens()
+
+                // 로그아웃 성공 시 콜백 호출
+                onLogoutSuccess()
             } else {
                 Log.e("MyPage", "Logout failed: ${response.code()}")
             }
@@ -292,18 +292,19 @@ private fun logoutUser(context: Context, onLogoutSuccess: () -> Unit) {
     }
 }
 
+
 @Composable
 fun MenuItem(text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 10.dp),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = text,
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             color = Color.Black,
             fontFamily = FontFamily(Font(R.font.pretendard_medium))
         )

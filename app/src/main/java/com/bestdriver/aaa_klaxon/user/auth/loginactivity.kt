@@ -37,36 +37,35 @@ import com.bestdriver.aaa_klaxon.network.auth.LoginViewModel
 import com.bestdriver.aaa_klaxon.ui.theme.AAA_klaxonTheme
 import com.bestdriver.aaa_klaxon.ui.theme.MyPurple
 import com.bestdriver.aaa_klaxon.R // 로고 파일이 포함된 리소스 패키지 추가
+import com.bestdriver.aaa_klaxon.home.MyScreen
 import com.bestdriver.aaa_klaxon.network.TokenManager
+import com.bestdriver.aaa_klaxon.user.mypage.OnboardingScreen
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             AAA_klaxonTheme {
-                // NavController 생성
                 val navController = rememberNavController()
 
-                // NavHost 설정
                 NavHost(navController = navController, startDestination = "login") {
                     composable("login") {
                         LoginScreen(
                             onLoginSuccess = {
                                 navController.navigate("main")
                             },
-                            navController = navController,
+                            navController = navController
                         )
                     }
                     composable("signup") {
-                        SignUpScreen(
-                            navController = navController
-                        )
+                        SignUpScreen(navController = navController)
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun LoginScreen(
@@ -129,7 +128,7 @@ fun LoginScreen(
                 value = email,
                 onValueChange = { viewModel.updateEmail(it) },
                 singleLine = true,
-                label = { Text("아이디", fontSize = 20.sp) },
+                label = { Text("아이디", fontSize = 15.sp) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -140,7 +139,7 @@ fun LoginScreen(
                 value = password,
                 onValueChange = { viewModel.updatePassword(it) },
                 singleLine = true,
-                label = { Text("비밀번호", fontSize = 20.sp) },
+                label = { Text("비밀번호", fontSize = 15.sp) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
@@ -160,9 +159,10 @@ fun LoginScreen(
             // 로그인 버튼
             Button(
                 onClick = {
-                    viewModel.onLoginClick { accessToken ->
+                    viewModel.onLoginClick {
+                        accessToken ->
                         // 액세스 토큰이 저장되었는지 확인
-                        val savedToken = TokenManager(context).getToken()
+                        val savedToken = TokenManager(context).getAccessToken()
                         if (savedToken != null) {
                             Log.d("LoginScreen", "Saved Token: $savedToken")
                         } else {
@@ -173,15 +173,15 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 25.dp)
-                    .height(56.dp),
+                    .padding(vertical = 23.dp)
+                    .height(53.dp),
                 shape = RoundedCornerShape(5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MyPurple
                 )
             ) {
                 Text("로그인",
-                    fontSize = 21.sp,
+                    fontSize = 15.sp,
                     color = Color.White
                 )
             }
@@ -197,13 +197,13 @@ fun LoginScreen(
                         .clickable { navController.navigate("signup") }
                         .padding(end = 16.dp),
                     color = MyPurple,
-                    fontSize = 18.sp
+                    fontSize = 16.sp
                 )
                 Text(
                     text = "아이디/비밀번호 찾기",
                     modifier = Modifier.clickable { /* 아이디/비밀번호 찾기 로직 추가 */ },
                     color = MyPurple,
-                    fontSize = 18.sp
+                    fontSize = 16.sp
                 )
             }
         }

@@ -40,17 +40,21 @@ import com.bestdriver.aaa_klaxon.util.CustomTopAppBar
 fun CashScreen(navController: NavController) {
     Scaffold(
         topBar = {
-            CustomTopAppBar(
-                navController = navController,
-                pageTitle = "적립내역",
-                onNavigationIconClick = { navController.navigateUp() }
-            )
+            Column(
+                modifier = Modifier.padding(top = 0.dp) // CustomTopAppBar 위에 45.dp 패딩 추가
+            ) {
+                CustomTopAppBar(
+                    navController = navController,
+                    pageTitle = "적립내역",
+                    onNavigationIconClick = { navController.navigateUp() }
+                )
+            }
         }
-    ) { paddingValues -> // Scaffold에서 제공하는 paddingValues 사용
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
-                .padding(paddingValues) // topBar에 의해 생기는 padding 처리
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             item {
                 CashDetails()
@@ -71,7 +75,8 @@ fun CashScreen(navController: NavController) {
 fun CashDetails() {
     Column(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp), // 여백 조정
         verticalArrangement = Arrangement.Center
     ) {
         Row(
@@ -95,12 +100,12 @@ fun CashDetails() {
                 Row(verticalAlignment = Alignment.Bottom,) {
                     Text(
                         text = "10,300",
-                        fontSize = 35.sp,
+                        fontSize = 30.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
                     )
                     Text(
                         text = "원",
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_regular)),
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -117,7 +122,7 @@ fun CashDetails() {
                     onClick = { /* Handle 새로고침 클릭 */ },
                     modifier = Modifier
                         .width(85.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0XFFF2E3E2)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFECD0CE)),
                     elevation = ButtonDefaults.elevatedButtonElevation(
                         defaultElevation = 5.dp,
                         pressedElevation = 0.dp,
@@ -130,7 +135,7 @@ fun CashDetails() {
                     Text(
                         text = "새로고침",
                         color = Color.Black,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
 
                         )
@@ -153,7 +158,7 @@ fun CashDetails() {
                     Text(
                         text = "사용하기",
                         color = Color.Black,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.pretendard_medium)),
                     )
                 }
@@ -173,11 +178,11 @@ fun CashDetails() {
 
 @Composable
 fun CashHistory() {
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp) // 여백 조정
     ) {
-        // 날짜별 캐시 내역을 그룹화하기 위한 예시 데이터
         val cashHistoryData = mapOf(
             "2024년 7월" to listOf(
                 Pair("07.24", "+3000 원"),
@@ -191,28 +196,25 @@ fun CashHistory() {
         )
 
         cashHistoryData.forEach { (date, transactions) ->
-            item {
-                Column {
-                    Text(
-                        text = date,
-                        fontSize = 25.sp,
-                        fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
-                        modifier = Modifier.padding(vertical = 14.dp)
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 14.dp),
-                        thickness = 1.dp,
-                        color = Color.LightGray
-                    )
-                }
-            }
-            items(transactions) { (day, amount) ->
+            Text(
+                text = date,
+                fontSize = 23.sp,
+                fontFamily = FontFamily(Font(R.font.pretendard_semibold)),
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                thickness = 1.dp,
+                color = Color.LightGray
+            )
+
+            transactions.forEach { (day, amount) ->
                 val isCredit = amount.startsWith("+")
                 Column {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 14.dp),
+                            .padding(vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -238,9 +240,8 @@ fun CashHistory() {
                             color = if (isCredit) Color.Red else Color.Blue
                         )
                     }
-                    // 금액 항목 아래 구분선 추가
                     HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
+                        modifier = Modifier.padding(vertical = 12.dp),
                         thickness = 0.3.dp,
                         color = Color.LightGray
                     )
@@ -249,7 +250,6 @@ fun CashHistory() {
         }
     }
 }
-
 
 
 @Preview(showBackground = true)

@@ -1,5 +1,9 @@
 package com.bestdriver.aaa_klaxon.util
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -25,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -41,38 +46,53 @@ fun CustomBottomBar(
     onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    NavigationBar(modifier = modifier) {
-        items.forEachIndexed { index, item ->
-            NavigationBarItem(
-                selected = selectedItemIndex == index,
-                onClick = {
-                    onItemSelected(index)
-                    navController.navigate(item.route) {
-                        launchSingleTop = true
-                    }
-                },
-                label = { Text(text = item.title) },
-                icon = {
-                    BadgedBox(
-                        badge = {
-                            if (item.hasNews) {
-                                Badge()
-                            }
+    // Box로 감싸고 NavigationBar 높이 조정
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(110.dp) // 원하는 높이로 설정
+    ) {
+        NavigationBar(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items.forEachIndexed { index, item ->
+                NavigationBarItem(
+                    selected = selectedItemIndex == index,
+                    onClick = {
+                        onItemSelected(index)
+                        navController.navigate(item.route) {
+                            launchSingleTop = true
                         }
-                    ) {
-                        Icon(
-                            imageVector = if (selectedItemIndex == index) {
-                                item.selectedIcon
-                            } else item.unselectedIcon,
-                            contentDescription = item.title,
-                            modifier = Modifier.size(25.dp)
+                    },
+                    label = {
+                        Text(
+                            text = item.title,
+                            fontSize = 10.sp // 글꼴 크기 조정
                         )
+                    },
+                    icon = {
+                        BadgedBox(
+                            badge = {
+                                if (item.hasNews) {
+                                    Badge()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (selectedItemIndex == index) {
+                                    item.selectedIcon
+                                } else item.unselectedIcon,
+                                contentDescription = item.title,
+                                modifier = Modifier.size(20.dp) // 아이콘 크기 줄이기
+                            )
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
+
 
 // 데이터 클래스 정의
 data class BottomNavigationItem(

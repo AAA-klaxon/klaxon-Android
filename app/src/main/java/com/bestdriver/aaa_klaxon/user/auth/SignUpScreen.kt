@@ -28,12 +28,9 @@ fun SignUpScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    // Get AuthApiService instance with context
     val context = LocalContext.current
     val authApiService = RetrofitClient.getAuthApiService(context)
-    val viewModel = remember {
-        SignUpViewModel(authApiService)
-    }
+    val viewModel = remember { SignUpViewModel(authApiService) }
 
     val email by viewModel.email.observeAsState("")
     val password by viewModel.password.observeAsState("")
@@ -42,8 +39,11 @@ fun SignUpScreen(
     val showDialog by viewModel.showDialog.observeAsState(false)
     val dialogMessage by viewModel.dialogMessage.observeAsState("")
 
-    val isFormValid =
-        email.isNotEmpty() && password.isNotEmpty() && nickname.isNotEmpty() && car_number.isNotEmpty()
+    // 에러 메시지 상태 변수
+    var emailErrorMessage by remember { mutableStateOf<String?>(null) }
+    var passwordErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    val isFormValid = email.isNotEmpty() && password.isNotEmpty() && nickname.isNotEmpty() && car_number.isNotEmpty()
 
     Scaffold(
         topBar = {
@@ -58,7 +58,7 @@ fun SignUpScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .padding(paddingValues) // LazyColumn에 paddingValues 적용
+                .padding(paddingValues)
                 .background(Color.White),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top
@@ -72,13 +72,29 @@ fun SignUpScreen(
                 )
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { viewModel.updateEmail(it) },
+                    onValueChange = {
+                        viewModel.updateEmail(it)
+                        emailErrorMessage = if (!isEmailValid(it)) {
+                            "올바른 이메일 형식을 입력해 주세요."
+                        } else {
+                            null
+                        }
+                    },
                     singleLine = true,
                     placeholder = { Text("cyber@duksung.ac.kr", fontSize = 15.sp) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                 )
+                // 이메일 형식 에러 메시지 표시
+                emailErrorMessage?.let { errorMessage ->
+                    Text(
+                        text = errorMessage,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
 
             item {
@@ -90,7 +106,14 @@ fun SignUpScreen(
                 )
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { viewModel.updatePassword(it) },
+                    onValueChange = {
+                        viewModel.updatePassword(it)
+//                        passwordErrorMessage = if (!isPasswordValid(it)) {
+//                            "비밀번호가 유효하지 않습니다. 규칙을 확인해주세요."
+//                        } else {
+//                            null
+//                        }
+                    },
                     singleLine = true,
                     placeholder = { Text("비밀번호를 입력해주세요", fontSize = 15.sp) },
                     modifier = Modifier
@@ -98,6 +121,20 @@ fun SignUpScreen(
                         .padding(vertical = 4.dp),
                     visualTransformation = PasswordVisualTransformation()
                 )
+//                passwordErrorMessage?.let { errorMessage ->
+//                    Text(
+//                        text = errorMessage,
+//                        color = Color.Red,
+//                        fontSize = 12.sp,
+//                        modifier = Modifier.padding(top = 8.dp)
+//                    )
+//                }
+//                Text(
+//                    text = "(영대문자, 영소문자, 숫자 및 특수문자 중 3종류 이상으로 구성, 최소 9자 이상)",
+//                    color = Color.Gray,
+//                    fontSize = 12.sp,
+//                    modifier = Modifier.padding(top = 4.dp)
+//                )
             }
 
             item {
@@ -165,7 +202,7 @@ fun SignUpScreen(
                 }
             }
 
-            // AlertDialog 표시를 위한 item
+            // AlertDialog 표시
             item {
                 if (showDialog) {
                     AlertDialog(
@@ -183,6 +220,35 @@ fun SignUpScreen(
         }
     }
 }
+
+// Email validation function
+fun isEmailValid(email: String): Boolean {
+    val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+    return emailPattern.matches(email)
+}
+
+//// Password validation function
+//fun isPasswordValid(password: String): Boolean {
+//    val minLength = 9
+//    val hasUpperCase = password.any { it.isUpperCase() }
+//    val hasLowerCase = password.any { it.isLowerCase() }
+//    val hasDigit = password.any { it.isDigit() }
+//    val hasSpecialChar = password.any { "!@#\$%^&*()_-+=[]{}|\\;:'\"<>,.?/~".contains(it) }
+//
+//    val validComposition = listOf(hasUpperCase, hasLowerCase, hasDigit, hasSpecialChar).count { it } >= 3
+//    if (password.length < minLength || !validComposition) {
+//        return false
+//    }
+//
+//    val easyPatterns = listOf("12345678", "abcdef", "qwerty", "password", "love", "happy")
+//    if (easyPatterns.any { password.contains(it, ignoreCase = true) }) {
+//        return false
+//    }
+//
+//    return true
+//}
+
+
 
 @Preview(showBackground = true)
 @Composable

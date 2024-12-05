@@ -34,43 +34,58 @@ class SignUpViewModel(
     private val _dialogMessage = MutableLiveData("")
     val dialogMessage: LiveData<String> get() = _dialogMessage
 
+    // 이메일 형식 검증을 위한 정규식
+    private val emailPattern = Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\$")
+
     fun onSignUpClick(navController: NavController) {
         val email = _email.value.orEmpty()
         val password = _password.value.orEmpty()
         val nickname = _nickname.value.orEmpty()
         val car_number = _car_number.value.orEmpty()
 
-        if (email.isNotEmpty() && password.isNotEmpty() && nickname.isNotEmpty() && car_number.isNotEmpty()) {
-            viewModelScope.launch {
-                try {
-                    val request = SignUpRequest(email, password, nickname, car_number)
-                    val response = authApiService.signUp(request)
-
-                    if (response.isSuccessful) {
-                        response.body()?.let { signUpResponse ->
-                            if (signUpResponse.isSuccess) {
-                                navController.popBackStack()
-                            } else {
-                                _dialogMessage.value = "회원가입 실패: ${signUpResponse.message}"
-                                _showDialog.value = true
-                            }
-                        }
-                    } else {
-                        handleErrorResponse(response.code())
-                    }
-                } catch (e: HttpException) {
-                    _dialogMessage.value = "회원가입에 실패했습니다: ${e.message()}"
-                    _showDialog.value = true
-                } catch (e: Exception) {
-                    Log.e("SignUp", "Unknown error occurred", e)
-                    _dialogMessage.value = "알 수 없는 오류가 발생했습니다: ${e.localizedMessage}"
-                    _showDialog.value = true
-                }
-            }
-        } else {
+        if (email.isEmpty() || password.isEmpty() || nickname.isEmpty() || car_number.isEmpty()) {
             _dialogMessage.value = "모든 필드를 올바르게 입력해 주세요."
             _showDialog.value = true
+            return
         }
+
+        if (!isEmailValid(email)) {  // 이메일 유효성 검사 추가
+            _dialogMessage.value = "올바른 이메일 형식을 입력해 주세요."
+            _showDialog.value = true
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val request = SignUpRequest(email, password, nickname, car_number)
+                val response = authApiService.signUp(request)
+
+                if (response.isSuccessful) {
+                    response.body()?.let { signUpResponse ->
+                        if (signUpResponse.isSuccess) {
+                            navController.popBackStack()
+                        } else {
+                            _dialogMessage.value = "회원가입 실패: ${signUpResponse.message}"
+                            _showDialog.value = true
+                        }
+                    }
+                } else {
+                    handleErrorResponse(response.code())
+                }
+            } catch (e: HttpException) {
+                _dialogMessage.value = "회원가입에 실패했습니다: ${e.message()}"
+                _showDialog.value = true
+            } catch (e: Exception) {
+                Log.e("SignUp", "Unknown error occurred", e)
+                _dialogMessage.value = "알 수 없는 오류가 발생했습니다: ${e.localizedMessage}"
+                _showDialog.value = true
+            }
+        }
+    }
+
+    // 이메일 유효성 검증 함수
+    private fun isEmailValid(email: String): Boolean {
+        return emailPattern.matches(email)
     }
 
     private fun handleErrorResponse(code: Int) {
